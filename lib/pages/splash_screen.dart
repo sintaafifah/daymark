@@ -1,8 +1,30 @@
 
 import 'package:flutter/material.dart';
+import 'login_screen.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.delayed(const Duration(seconds: 5), () {
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LoginScreen(),
+        ),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,26 +69,6 @@ class SplashScreen extends StatelessWidget {
                     width: 90,
                     height: 90,
                     fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFF3985FF),
-                              Color(0xFF243CE5),
-                            ],
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.broken_image_outlined,
-                          color: Colors.white,
-                          size: 36,
-                        ),
-                      );
-                    },
                   ),
                 ),
 
