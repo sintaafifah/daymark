@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'register_screen.dart';
+import 'dashboard_screen.dart';
 import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,6 +19,15 @@ class _LoginScreenState extends State<LoginScreen> {
       TextEditingController();
 
   bool obscurePassword = true;
+
+  void navigateToDashboard() {
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const DashboardScreen(),
+    ),
+  );
+}
 
   @override
   void dispose() {
@@ -281,16 +291,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       height: 44,
                       child: ElevatedButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Fitur login akan dibuat pada tahap berikutnya.',
-                              ),
-                            ),
-                          );
-                        },
+                        onPressed: () async {
+  try {
+    final userCredential = await AuthService.signInWithEmail(
+      email: emailController.text,
+      password: passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (userCredential.user != null) {
+      navigateToDashboard();
+    }
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Login gagal: $e'),
+      ),
+    );
+  }
+},
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
                               const Color(0xFF4D8FEF),
@@ -332,19 +354,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 37,
                       child: OutlinedButton(
                         onPressed: () async {
-                          try {
-                          final userCredential =
-                          await AuthService.signInWithGoogle();
+  try {
+    final userCredential =
+        await AuthService.signInWithGoogle();
 
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Berhasil masuk: ${userCredential.user?.email}',
-        ),
-      ),
-    );
+    if (userCredential.user != null) {
+      navigateToDashboard();
+    }
   } catch (e) {
     if (!mounted) return;
 

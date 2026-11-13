@@ -1,5 +1,8 @@
 
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:daymark/services/auth_service.dart';
+import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,6 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -26,6 +30,87 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _confirmPasswordController.dispose();
     super.dispose();
   }
+
+Future<void> _registerUser() async {
+  final name = _nameController.text.trim();
+  final email = _emailController.text.trim();
+  final password = _passwordController.text;
+  final confirmPassword = _confirmPasswordController.text;
+
+  if (name.isEmpty ||
+      email.isEmpty ||
+      password.isEmpty ||
+      confirmPassword.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Semua kolom wajib diisi.')),
+    );
+    return;
+  }
+
+  if (password != confirmPassword) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Konfirmasi kata sandi tidak cocok.')),
+    );
+    return;
+  }
+
+  setState(() => _isLoading = true);
+
+  try {
+    final credential = await AuthService.registerWithEmail(
+      name: name,
+      email: email,
+      password: password,
+    );
+
+    if (!mounted) return;
+
+    if (credential.user != null) {
+  await FirebaseAuth.instance.signOut();
+
+  if (!mounted) return;
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const LoginScreen(),
+    ),
+  );
+}
+  } on FirebaseAuthException catch (e) {
+    if (!mounted) return;
+
+    String message;
+
+    switch (e.code) {
+      case 'email-already-in-use':
+        message = 'Email sudah terdaftar.';
+        break;
+      case 'invalid-email':
+        message = 'Format email tidak valid.';
+        break;
+      case 'weak-password':
+        message = 'Kata sandi minimal 6 karakter.';
+        break;
+      default:
+        message = e.message ?? 'Pendaftaran gagal.';
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Terjadi kesalahan: $e')),
+    );
+  } finally {
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+}
 
   Widget _buildInputField({
     required String label,
@@ -206,15 +291,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       width: double.infinity,
                       height: 44,
                       child: ElevatedButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Fitur pendaftaran akan segera dihubungkan.',
-                              ),
-                            ),
-                          );
-                        },
+                        onPressed: _isLoading ? null : _registerUser,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4D8CEB),
                           foregroundColor: Colors.white,
@@ -223,13 +300,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             borderRadius: BorderRadius.circular(11),
                           ),
                         ),
-                        child: const Text(
-                          'Daftar sekarang',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        child: _isLoading
+    ? const SizedBox(
+        width: 20,
+        height: 20,
+        child: CircularProgressIndicator(
+          color: Colors.white,
+          strokeWidth: 2,
+        ),
+      )
+    : const Text(
+        'Daftar sekarang',
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
                       ),
                     ),
 
