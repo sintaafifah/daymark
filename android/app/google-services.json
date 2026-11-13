@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "512058753808",
+    "project_id": "daymark-aa1ea",
+    "storage_bucket": "daymark-aa1ea.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:512058753808:android:2d526105408ac49f0c9b95",
+        "android_client_info": {
+          "package_name": "com.example.daymark"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "512058753808-akp82ha34v4d9301m7o3lds6g62f01ea.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.daymark",
+            "certificate_hash": "54817d6a52efb6d60a534e6d055a3d21915c5a2d"
+          }
+        },
+        {
+          "client_id": "512058753808-uqmek7sd4qfiqt6a69uq5ione623le98.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAwGzkG-6vUav6YdfqBFtWOZ1iphUfz4m4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "512058753808-uqmek7sd4qfiqt6a69uq5ione623le98.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

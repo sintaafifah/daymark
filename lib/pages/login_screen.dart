@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'register_screen.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -329,7 +331,30 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       height: 37,
                       child: OutlinedButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          try {
+                          final userCredential =
+                          await AuthService.signInWithGoogle();
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Berhasil masuk: ${userCredential.user?.email}',
+        ),
+      ),
+    );
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Login Google gagal: $e'),
+      ),
+    );
+  }
+},
                         style: OutlinedButton.styleFrom(
                           backgroundColor: Colors.white,
                           side: const BorderSide(
@@ -370,7 +395,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Link Daftar
                     Center(
                       child: GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                          builder: (context) => const RegisterScreen(),
+                          ),
+                        );
+                        },
                         child: const Text(
                           'Belum punya akun? Daftar',
                           style: TextStyle(
