@@ -1,6 +1,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'user_service.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -9,76 +10,100 @@ class AuthService {
   static Future<void>? _initializeGoogleSignIn;
 
   // Login menggunakan Email dan Password
-  static Future<UserCredential> signInWithEmail({
-    required String email,
-    required String password,
-  }) async {
-    return await _auth.signInWithEmailAndPassword(
-      email: email.trim(),
-      password: password,
-    );
+ static Future<UserCredential> signInWithEmail({
+  required String email,
+  required String password,
+}) async {
+  final UserCredential credential =
+      await _auth.signInWithEmailAndPassword(
+    email: email.trim(),
+    password: password,
+  );
+
+  final User? user = credential.user;
+
+  if (user != null) {
+    await UserService.createOrUpdateUser(user);
   }
 
-    // Register menggunakan Email dan Password
-  static Future<UserCredential> registerWithEmail({
-    required String name,
-    required String email,
-    required String password,
-  }) async {
-    final UserCredential credential =
-        await _auth.createUserWithEmailAndPassword(
-      email: email.trim(),
-      password: password,
-    );
+  return credential;
+}
 
-    await credential.user?.updateDisplayName(name.trim());
+  // Register menggunakan Email dan Password
 
-    return credential;
+static Future<UserCredential> registerWithEmail({
+  required String name,
+  required String email,
+  required String password,
+}) async {
+  final UserCredential credential =
+      await _auth.createUserWithEmailAndPassword(
+    email: email.trim(),
+    password: password,
+  );
+
+  final User? user = credential.user;
+
+  if (user != null) {
+    await user.updateDisplayName(name.trim());
+    await user.reload();
+
+    final User? updatedUser = _auth.currentUser;
+
+    if (updatedUser != null) {
+      await UserService.createOrUpdateUser(updatedUser);
+    }
   }
+
+  return credential;
+}
+
 
   // Login menggunakan Google
+  static Future<UserCredential> signInWithGoogle() async {
+    _initializeGoogleSignIn ??= _googleSignIn.initialize(
+      serverClientId:
+          '512058753808-uqmek7sd4qfiqt6a69uq5ione623le98.apps.googleusercontent.com',
+    );
 
-static Future<UserCredential> signInWithGoogle() async {
-  print('GOOGLE 1: Memulai inisialisasi');
+    await _initializeGoogleSignIn;
 
-  _initializeGoogleSignIn ??= _googleSignIn.initialize(
-    serverClientId:
-        '512058753808-uqmek7sd4qfiqt6a69uq5ione623le98.apps.googleusercontent.com',
-  );
+    final GoogleSignInAccount googleUser =
+        await _googleSignIn.authenticate();
 
-  await _initializeGoogleSignIn;
-  print('GOOGLE 2: Inisialisasi berhasil');
+    final GoogleSignInAuthentication googleAuth =
+        googleUser.authentication;
 
-  final GoogleSignInAccount googleUser =
-      await _googleSignIn.authenticate();
+    final String? idToken = googleAuth.idToken;
 
-  print('GOOGLE 3: Akun Google berhasil dipilih');
-  print('GOOGLE EMAIL: ${googleUser.email}');
+    if (idToken == null) {
+      throw Exception('Token Google tidak ditemukan.');
+    }
 
-  final GoogleSignInAuthentication googleAuth =
-      googleUser.authentication;
+    final OAuthCredential credential =
+        GoogleAuthProvider.credential(
+      idToken: idToken,
+    );
 
-  print('GOOGLE 4: Mengambil ID Token');
+    final UserCredential userCredential =
+    await _auth.signInWithCredential(credential);
 
-  final String? idToken = googleAuth.idToken;
+final User? user = userCredential.user;
 
-  if (idToken == null) {
-    throw Exception('Token Google tidak ditemukan.');
+if (user != null) {
+  await UserService.createOrUpdateUser(user);
+}
+
+return userCredential;
   }
 
-  print('GOOGLE 5: ID Token tersedia');
-  print('GOOGLE 6: Menghubungkan ke Firebase');
+  // Logout dari akun
+  static Future<void> signOut() async {
+    await _auth.signOut();
 
-  final OAuthCredential credential =
-      GoogleAuthProvider.credential(
-    idToken: idToken,
-  );
-
-  final result = await _auth.signInWithCredential(credential);
-
-  print('GOOGLE 7: Login Firebase berhasil');
-  print('GOOGLE USER: ${result.user?.email}');
-
-  return result;
-}
+    // Keluar dari sesi Google jika sebelumnya sudah diinisialisasi
+    if (_initializeGoogleSignIn != null) {
+      await _googleSignIn.signOut();
+    }
+  }
 }
