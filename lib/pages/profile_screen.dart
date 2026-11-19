@@ -43,6 +43,16 @@ class _ProfileContent extends StatelessWidget {
 
   const _ProfileContent({required this.user});
 
+  String get _profileInitials {
+    final name = (user?.displayName?.trim().isNotEmpty == true)
+        ? user!.displayName!.trim()
+        : (user?.email?.split('@').first ?? 'Pengguna');
+    final parts = name.split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList();
+    if (parts.isEmpty) return 'P';
+    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -192,16 +202,20 @@ class _ProfileContent extends StatelessWidget {
       child: Row(
         children: [
           CircleAvatar(
-            radius: 30,
+            radius: 34,
             backgroundColor: colors.surface,
             backgroundImage: user?.photoURL != null
                 ? NetworkImage(user!.photoURL!)
                 : null,
             child: user?.photoURL == null
-                ? Icon(
-                    Icons.person,
-                    size: 32,
-                    color: colors.primary,
+                ? Text(
+                    _profileInitials,
+                    style: TextStyle(
+                      color: colors.primary,
+                      fontSize: 21,
+                      letterSpacing: 0.2,
+                      fontWeight: FontWeight.w700,
+                    ),
                   )
                 : null,
           ),
