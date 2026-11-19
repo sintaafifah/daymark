@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,15 +27,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return user?.email?.split('@').first ?? 'Pengguna';
   }
 
+  String get firstName {
+    final parts = userName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return 'Pengguna';
+
+    final name = parts.first;
+    return name.length == 1
+        ? name.toUpperCase()
+        : '${name[0].toUpperCase()}${name.substring(1)}';
+  }
+
+  String get userInitials {
+    final parts = userName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return 'P';
+    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
+
   String get currentDate {
+    const weekdays = [
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
+    ];
     const months = [
-      'Januari', 'Februari', 'Maret', 'April',
-      'Mei', 'Juni', 'Juli', 'Agustus',
-      'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
 
     final now = DateTime.now();
-    return '${now.day} ${months[now.month - 1]} ${now.year}';
+    return '${weekdays[now.weekday - 1]}, ${now.day} '
+        '${months[now.month - 1]} ${now.year}';
   }
 
   @override
@@ -52,40 +95,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (index == 0) return;
 
     if (index == 1) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const TasksScreen(),
-      ),
-    );
-    return;
-  }
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const TasksScreen()),
+      );
+      return;
+    }
 
-
-  if (index == 2) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const AddTaskScreen(),
-      ),
-    );
-    return;
-  }
+    if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AddTaskScreen()),
+      );
+      return;
+    }
 
     if (index == 4) {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => const ProfileScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const ProfileScreen()),
       );
       return;
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Halaman ini akan segera tersedia.'),
-      ),
+      const SnackBar(content: Text('Halaman ini akan segera tersedia.')),
     );
   }
 
@@ -101,16 +135,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return const Center(
-                child: Text(
-                  'Gagal memuat tugas. Periksa koneksi internet.',
-                ),
+                child: Text('Gagal memuat tugas. Periksa koneksi internet.'),
               );
             }
 
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
+              return const Center(child: CircularProgressIndicator());
             }
 
             final tasks = snapshot.data?.docs ?? [];
@@ -130,39 +160,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 final isDesktop = constraints.maxWidth >= 1100;
 
                 return SingleChildScrollView(
-                  padding: EdgeInsets.all(
-                    isDesktop ? 32 : 20,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isDesktop ? 32 : 16,
+                    vertical: isDesktop
+                        ? 32
+                        : (constraints.maxHeight < 680 ? 10 : 14),
                   ),
                   child: Center(
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxWidth: 1200,
-                      ),
+                      constraints: const BoxConstraints(maxWidth: 1200),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildHeader(context),
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 8),
 
                           Text(
-                            'Hai, $userName!',
+                            'Hai, $firstName!',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              height: 1.2,
+                              fontWeight: FontWeight.w700,
                               color: colors.onSurface,
                             ),
                           ),
 
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 4),
 
                           Text(
                             '$currentDate · Waktunya melangkah maju.',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 10,
+                              height: 1.3,
                               color: colors.onSurfaceVariant,
                             ),
                           ),
 
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 15),
 
                           if (isDesktop)
                             _buildDesktopContent(
@@ -201,9 +240,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Image.asset(
-          'assets/images/logo.png',
-          width: 125,
-          height: 42,
+          'assets/images/dashboard_logo_slim.png',
+          width: 124,
+          height: 39,
+          alignment: Alignment.centerLeft,
           fit: BoxFit.contain,
         ),
         InkWell(
@@ -216,9 +256,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ? NetworkImage(user!.photoURL!)
                 : null,
             child: user?.photoURL == null
-                ? Icon(
-                    Icons.person,
-                    color: colors.primary,
+                ? Text(
+                    userInitials,
+                    style: TextStyle(
+                      color: colors.primary,
+                      fontSize: 13,
+                      letterSpacing: 0.3,
+                      fontWeight: FontWeight.w800,
+                    ),
                   )
                 : null,
           ),
@@ -239,8 +284,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         if (tasks.isEmpty) ...[
           _buildEmptyState(context),
-          const SizedBox(height: 24),
-          _buildGettingStarted(context),
         ] else ...[
           _buildProgressCard(context, completed, total, progress),
           const SizedBox(height: 24),
@@ -262,19 +305,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         Expanded(
           flex: 7,
-          child: _buildMainContent(
-            context,
-            tasks,
-            completed,
-            total,
-            progress,
-          ),
+          child: _buildMainContent(context, tasks, completed, total, progress),
         ),
         const SizedBox(width: 24),
-        Expanded(
-          flex: 3,
-          child: _buildSidePanel(context, tasks),
-        ),
+        Expanded(flex: 3, child: _buildSidePanel(context, tasks)),
       ],
     );
   }
@@ -325,114 +359,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildEmptyState(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final mascotHeight = (screenHeight * 0.225).clamp(150.0, 205.0).toDouble();
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.fromLTRB(18, 17, 18, 20),
       decoration: BoxDecoration(
-        color: colors.primary.withValues(alpha: 0.13),
+        color: const Color(0xFFEEEAFE),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset(
-            'assets/images/maskot.png',
-            height: 150,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Hari baru, peluang baru.',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colors.onSurface,
+          SizedBox(
+            height: mascotHeight,
+            child: Image.asset(
+              'assets/images/dashboard_mascot.png',
+              fit: BoxFit.contain,
             ),
           ),
           const SizedBox(height: 10),
           Text(
-            'Belum ada tugas. Yuk, tulis satu hal kecil '
-            'yang ingin kamu selesaikan hari ini.',
+            'Hari baru, peluang baru.',
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colors.onSurfaceVariant,
-              height: 1.5,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontSize: 17,
+              height: 1.25,
+              fontWeight: FontWeight.w700,
+              color: colors.onSurface,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 300),
+            child: Text(
+              'Belum ada tugas. Yuk, tulis satu hal kecil '
+              'yang ingin kamu selesaikan hari ini.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 11,
+                height: 1.45,
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(height: 19),
           SizedBox(
             width: double.infinity,
+            height: 44,
             child: ElevatedButton(
               onPressed: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => const AddTaskScreen(),
-    ),
-  );
-},
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddTaskScreen(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 44),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                textStyle: const TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(9),
+                ),
+              ),
               child: const Text('+ Buat tugas pertamamu'),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildGettingStarted(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Mulai dengan yang sederhana',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: theme.dividerColor),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.check_box_outline_blank,
-                color: colors.primary,
-                size: 21,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Tulis rencana hari ini',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      'Langkah kecil untuk awal yang baik.',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -476,9 +476,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               value: progress,
               minHeight: 8,
               backgroundColor: colors.onPrimary.withValues(alpha: 0.3),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                colors.onPrimary,
-              ),
+              valueColor: AlwaysStoppedAnimation<Color>(colors.onPrimary),
             ),
           ),
         ],
@@ -524,75 +522,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final priority = data['priority'] ?? 'Sedang';
 
     return InkWell(
-  borderRadius: BorderRadius.circular(14),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TaskDetailScreen(
-          taskId: taskId,
+      borderRadius: BorderRadius.circular(14),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TaskDetailScreen(taskId: taskId),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: theme.dividerColor),
+        ),
+        child: Row(
+          children: [
+            Checkbox(
+              value: isCompleted,
+              activeColor: colors.primary,
+              onChanged: (value) async {
+                try {
+                  await TaskService.setTaskCompleted(
+                    taskId: taskId,
+                    isCompleted: value ?? false,
+                  );
+                } catch (e) {
+                  if (!context.mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Gagal memperbarui tugas.')),
+                  );
+                }
+              },
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      decoration: isCompleted
+                          ? TextDecoration.lineThrough
+                          : TextDecoration.none,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    '$time · $category · Prioritas $priority',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
-  },
-  child: Container(
-    margin: const EdgeInsets.only(bottom: 10),
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: colors.surface,
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: theme.dividerColor),
-    ),
-    child: Row(
-      children: [
-        Checkbox(
-          value: isCompleted,
-          activeColor: colors.primary,
-          onChanged: (value) async {
-            try {
-              await TaskService.setTaskCompleted(
-                taskId: taskId,
-                isCompleted: value ?? false,
-              );
-            } catch (e) {
-              if (!context.mounted) return;
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Gagal memperbarui tugas.'),
-                ),
-              );
-            }
-          },
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  decoration: isCompleted
-                      ? TextDecoration.lineThrough
-                      : TextDecoration.none,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                '$time · $category · Prioritas $priority',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  ),
-);
   }
 
   Widget _buildMascotCard(BuildContext context) {
@@ -609,7 +603,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         children: [
           Image.asset(
-            'assets/images/maskot.png',
+            'assets/images/dashboard_mascot.png',
             height: 140,
             fit: BoxFit.contain,
           ),
@@ -632,6 +626,4 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
-
 }
