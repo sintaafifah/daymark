@@ -7,6 +7,10 @@ import '../services/auth_service.dart';
 import '../widgets/app_shell.dart';
 import 'login_screen.dart';
 import 'dashboard_screen.dart';
+import 'calendar_screen.dart';
+import 'tasks_screen.dart';
+import 'reminder_settings_screen.dart';
+import 'notifications_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -15,7 +19,8 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
-    return AppShell(
+    
+return AppShell(
   selectedIndex: 4,
   onDestinationSelected: (index) {
     if (index == 0) {
@@ -25,16 +30,41 @@ class ProfileScreen extends StatelessWidget {
           builder: (_) => const DashboardScreen(),
         ),
       );
-    } else if (index != 4) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Halaman ini akan segera tersedia.'),
+    } else if (index == 3) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const CalendarScreen(),
         ),
       );
-    }
+    } else if (index == 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const TasksScreen(),
+        ),
+      );
+    } else if (index == 7) {
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const NotificationsScreen(),
+    ),
+  );
+} else if (index != 4) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Halaman ini akan segera tersedia.'),
+    ),
+  );
+}
+    
   },
   child: _ProfileContent(user: user),
+  
 );
+
+
   }
 }
 
@@ -299,18 +329,39 @@ class _ProfileContent extends StatelessWidget {
               'Saat ini Daymark menggunakan Bahasa Indonesia.',
             ),
           ),
-          _settingItem(
-            context,
-            icon: Icons.notifications_none,
-            title: 'Pengingat & notifikasi',
-            subtitle: 'Atur waktu pemberitahuan',
-            showDivider: false,
-            onTap: () => _showInfoDialog(
-              context,
-              'Pengingat & notifikasi',
-              'Pengaturan pengingat akan tersedia di sini.',
-            ),
-          ),
+ 
+_settingItem(
+  context,
+  icon: Icons.notifications_none,
+  title: 'Pengingat & notifikasi',
+  subtitle: 'Atur waktu pemberitahuan',
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ReminderSettingsScreen(),
+      ),
+    );
+  },
+),
+
+_settingItem(
+  context,
+  icon: Icons.notifications_active_outlined,
+  title: 'Kotak masuk notifikasi',
+  subtitle: 'Lihat pemberitahuan dan aktivitas terbaru',
+  showDivider: false,
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const NotificationsScreen(),
+      ),
+    );
+  },
+),
+
+
         ],
       ),
     );

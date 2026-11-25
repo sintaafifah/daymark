@@ -6,7 +6,7 @@ import '../services/task_service.dart';
 import '../widgets/app_shell.dart';
 import 'task_detail_screen.dart';
 import 'profile_screen.dart';
-
+import 'calendar_screen.dart';
 
 class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});
@@ -37,6 +37,16 @@ class _TasksScreenState extends State<TasksScreen> {
   }
 
  void _handleNavigation(int index) {
+if (index == 3) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const CalendarScreen(),
+    ),
+  );
+  return;
+}
+
   if (index == 1) return;
 
   if (index == 0) {

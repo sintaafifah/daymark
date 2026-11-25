@@ -8,6 +8,7 @@ import 'profile_screen.dart';
 import 'add_task_screen.dart';
 import 'tasks_screen.dart';
 import 'task_detail_screen.dart';
+import 'calendar_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -109,6 +110,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
       return;
     }
+
+    if (index == 3) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const CalendarScreen(),
+    ),
+  );
+  return;
+}
 
     if (index == 4) {
       Navigator.push(

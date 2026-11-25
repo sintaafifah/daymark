@@ -378,9 +378,10 @@ class _StatisticsProgressScreenState extends State<StatisticsProgressScreen> {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final highest = dailyCounts.fold<int>(
-      0,
-      (previous, count) => previous > count ? previous : count,
-    );
+  0,
+  (previous, dailyCount) =>
+      previous > dailyCount ? previous : dailyCount,
+);
 
     return Container(
       width: double.infinity,

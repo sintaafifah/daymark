@@ -30,6 +30,15 @@ static Stream<DocumentSnapshot<Map<String, dynamic>>> watchTask(
         .collection('tasks');
   }
 
+  // Referensi koleksi notifikasi pengguna
+static CollectionReference<Map<String, dynamic>>
+    get _notificationsRef {
+  return _firestore
+      .collection('users')
+      .doc(_uid)
+      .collection('notifications');
+}
+
   // Mengambil tugas secara real-time
   static Stream<QuerySnapshot<Map<String, dynamic>>>
       getTasks() {
@@ -45,6 +54,8 @@ static Stream<DocumentSnapshot<Map<String, dynamic>>> watchTask(
   }
 
   // Menambahkan tugas baru
+  
+  // Menambahkan tugas baru sekaligus membuat notifikasi
   static Future<void> addTask({
     required String title,
     String description = '',
@@ -57,7 +68,13 @@ static Stream<DocumentSnapshot<Map<String, dynamic>>> watchTask(
   }) async {
     final now = Timestamp.now();
 
-    await _tasksRef.add({
+    final taskRef = _tasksRef.doc();
+    final notificationRef = _notificationsRef.doc();
+
+    final batch = _firestore.batch();
+
+    // Menyimpan tugas
+    batch.set(taskRef, {
       'title': title,
       'description': description,
       'date': Timestamp.fromDate(date),
@@ -77,7 +94,20 @@ static Stream<DocumentSnapshot<Map<String, dynamic>>> watchTask(
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+
+    // Membuat notifikasi
+    batch.set(notificationRef, {
+      'title': 'Tugas baru ditambahkan',
+      'message': 'Tugas "$title" berhasil ditambahkan.',
+      'type': 'task',
+      'isRead': false,
+      'taskId': taskRef.id,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    await batch.commit();
   }
+
 
   // Memperbarui informasi tugas
   static Future<void> updateTask({
