@@ -56,6 +56,7 @@ static CollectionReference<Map<String, dynamic>>
   // Menambahkan tugas baru
   
   // Menambahkan tugas baru sekaligus membuat notifikasi
+    // Menambahkan tugas baru sekaligus membuat notifikasi
   static Future<void> addTask({
     required String title,
     String description = '',
@@ -65,6 +66,8 @@ static CollectionReference<Map<String, dynamic>>
     String priority = 'Sedang',
     int? reminderMinutesBefore,
     List<Map<String, dynamic>> checklist = const [],
+    String? attachmentPath,
+    String? attachmentName,
   }) async {
     final now = Timestamp.now();
 
@@ -83,6 +86,8 @@ static CollectionReference<Map<String, dynamic>>
       'priority': priority,
       'reminderMinutesBefore': reminderMinutesBefore,
       'checklist': checklist,
+      'attachmentPath': attachmentPath,
+      'attachmentName': attachmentName,
       'isCompleted': false,
       'status': 'Belum dimulai',
       'activity': [

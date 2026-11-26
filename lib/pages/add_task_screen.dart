@@ -1,5 +1,8 @@
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../services/task_service.dart';
 
@@ -27,6 +30,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   final List<String> _checklistItems = [];
 
   bool _isSaving = false;
+  String? _attachmentPath;
+  String? _attachmentName;
 
   final List<String> _categories = [
     'Akademik',
@@ -117,6 +122,63 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     }
   }
 
+
+  // Memilih gambar lampiran
+  
+  // Memilih satu gambar lampiran
+  Future<void> _pickImage() async {
+    try {
+      final selectedFile = await FilePicker.pickFile(
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png'],
+      );
+
+      if (selectedFile == null || selectedFile.path == null) {
+        return;
+      }
+
+      final sourceFile = File(selectedFile.path!);
+      final directory = await getApplicationDocumentsDirectory();
+
+      final safeName = selectedFile.name.replaceAll(
+        RegExp(r'[^A-Za-z0-9._-]'),
+        '_',
+      );
+
+      final fileName =
+          '${DateTime.now().microsecondsSinceEpoch}_$safeName';
+
+      final targetPath =
+          '${directory.path}${Platform.pathSeparator}$fileName';
+
+      await sourceFile.copy(targetPath);
+
+      if (!mounted) return;
+
+      setState(() {
+        _attachmentPath = targetPath;
+        _attachmentName = selectedFile.name;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memilih gambar: $e')),
+      );
+    }
+  }
+
+
+  // Menghapus gambar yang dipilih
+  void _removeImage() {
+    setState(() {
+      _attachmentPath = null;
+      _attachmentName = null;
+    });
+  }
+
+
+
   void _addChecklistItem() {
     final title = _checklistController.text.trim();
 
@@ -158,6 +220,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             'isCompleted': false,
           };
         }).toList(),
+attachmentPath: _attachmentPath,
+attachmentName: _attachmentName,
       );
 
       if (!mounted) return;
@@ -313,22 +377,22 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          TextFormField(
-                            controller: _titleController,
-                            textCapitalization:
-                                TextCapitalization.sentences,
-                            decoration: _inputDecoration(
-                              'Nama tugas',
-                              Icons.edit_outlined,
-                            ),
-                            validator: (value) {
-                              if (value == null ||
-                                  value.trim().isEmpty) {
-                                return 'Nama tugas wajib diisi.';
-                              }
-                              return null;
-                            },
-                          ),
+                          
+TextFormField(
+  controller: _titleController,
+  textCapitalization: TextCapitalization.sentences,
+  decoration: _inputDecoration(
+    'Nama tugas',
+    Icons.edit_outlined,
+  ),
+  validator: (value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Nama tugas wajib diisi.';
+    }
+    return null;
+  },
+),
+
 
                           const SizedBox(height: 16),
 
@@ -342,6 +406,77 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                               Icons.description_outlined,
                             ),
                           ),
+
+
+const SizedBox(height: 16),
+
+_buildSectionTitle(
+  'Lampiran Gambar',
+  'Tambahkan gambar pendukung tugas jika diperlukan.',
+),
+
+const SizedBox(height: 12),
+
+if (_attachmentPath == null)
+  SizedBox(
+    width: double.infinity,
+    child: OutlinedButton.icon(
+      onPressed: _isSaving ? null : _pickImage,
+      icon: const Icon(Icons.image_outlined),
+      label: const Text('Pilih Gambar'),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+    ),
+  )
+else
+  Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      border: Border.all(color: colors.outlineVariant),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.file(
+            File(_attachmentPath!),
+            width: double.infinity,
+            height: 180,
+            fit: BoxFit.cover,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            const Icon(Icons.image_outlined, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                _attachmentName ?? 'Gambar terpilih',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            IconButton(
+              onPressed: _removeImage,
+              icon: const Icon(
+                Icons.delete_outline,
+                color: Colors.red,
+              ),
+              tooltip: 'Hapus gambar',
+            ),
+          ],
+        ),
+      ],
+    ),
+  ),
+
 
                           const SizedBox(height: 20),
 
@@ -522,6 +657,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                                     Icons.check_circle_outline,
                                   ),
                                   onSubmitted: (_) {
+
+
+
                                     _addChecklistItem();
                                   },
                                 ),

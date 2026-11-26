@@ -1,4 +1,5 @@
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -72,6 +73,10 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           final title = (data['title'] ?? '').toString();
           final description =
               (data['description'] ?? '').toString();
+          final attachmentPath =
+             (data['attachmentPath'] ?? '').toString();
+          final attachmentName =
+              (data['attachmentName'] ?? '').toString();
           final category =
               (data['category'] ?? 'Pribadi').toString();
           final priority =
@@ -132,13 +137,21 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         const SizedBox(height: 20),
 
                         _buildDescription(
-                          context,
-                          description,
-                        ),
+  context,
+  description,
+),
 
-                        const SizedBox(height: 20),
+const SizedBox(height: 20),
 
-                        _buildInformation(
+_buildAttachment(
+  context,
+  attachmentPath,
+  attachmentName,
+),
+
+const SizedBox(height: 20),
+
+_buildInformation(
                           context,
                           category,
                           priority,
@@ -255,6 +268,80 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       ),
     );
   }
+
+Widget _buildAttachment(
+  BuildContext context,
+  String attachmentPath,
+  String attachmentName,
+) {
+  final theme = Theme.of(context);
+
+  // Jika tugas tidak memiliki lampiran
+  if (attachmentPath.isEmpty) {
+    return const SizedBox.shrink();
+  }
+
+  final file = File(attachmentPath);
+
+  // Jika file gambar tidak ditemukan
+  if (!file.existsSync()) {
+    return _sectionCard(
+      context,
+      title: 'Lampiran Gambar',
+      child: const Text(
+        'File gambar tidak ditemukan di penyimpanan perangkat.',
+      ),
+    );
+  }
+
+  return _sectionCard(
+    context,
+    title: 'Lampiran Gambar',
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.file(
+            file,
+            width: double.infinity,
+            height: 260,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return const SizedBox(
+                height: 150,
+                child: Center(
+                  child: Text('Gagal menampilkan gambar.'),
+                ),
+              );
+            },
+          ),
+        ),
+
+        if (attachmentName.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Icon(
+                Icons.image_outlined,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  attachmentName,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    ),
+  );
+}
+
 
   Widget _buildInformation(
     BuildContext context,
